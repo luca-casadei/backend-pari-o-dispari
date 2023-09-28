@@ -1,0 +1,24 @@
+{
+  "name": "backend-pari-o-dispari",
+  "version": "1.0.0",
+  "description": "Backend per il gestionale della dieta per bambini con patologie.",
+  "main": "backend-main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luca-casadei/backend-pari-o-dispari.git"
+  },
+  "author": "Luca Casadei",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/luca-casadei/backend-pari-o-dispari/issues"
+  },
+  "homepage": "https://github.com/luca-casadei/backend-pari-o-dispari#readme",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "serve-favicon": "^2.5.0"
+  }
+}
