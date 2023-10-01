@@ -4,7 +4,7 @@
   "description": "Backend per il gestionale della dieta per bambini con patologie.",
   "main": "backend-main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node backend-main.js"
   },
   "repository": {
     "type": "git",
