@@ -3,7 +3,7 @@ require("dotenv").config()
 /*Express backend manaer*/
 const express = require("express")
 /*Path for resources, node implementation*/
-const path = require("node:path")
+const path = require("path")
 
 const app = express()
 const port = process.env.PORT || 3000
