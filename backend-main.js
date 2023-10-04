@@ -1,8 +1,9 @@
 const cipher = require("./security/cipher")
-const cors = require("cors")
-const bodyParser = require("body-parser")
 const sql = require("mysql2")
 const dbConf = require("./db/dbconfig.json")
+const bodyParser = require("body-parser")
+const jsonParser = bodyParser.json()
+const urlEncodedParser = bodyParser.urlencoded({extended:false});
 var pool = sql.createPool(dbConf);
 
 /*Environment variables for secrets*/
@@ -17,12 +18,9 @@ const path = require("path")
 const app = express()
 const port = process.env.PORT || 3000
 const favicon = require("serve-favicon")
-const { connect } = require("http2")
 
 //Favicon serving with serve-favicon module.
 app.use(favicon(path.join(__dirname,"resources","favicon.ico")))
-app.use(cors());
-app.use(bodyParser.json());
 app.use(express.static('pages'));
 
 //Main functions start here
@@ -30,12 +28,24 @@ app.get("/",(request,response) =>{
     response.sendFile(path.join(__dirname + "/pages/index.html"));
 })
 
-app.get("/getuser", (request,response)=>{
-    const mail = request.query.email;
-    const password = request.query.password;
-    let psw = cipher.encryptPBKDF2(password);
-    pool.query('SELECT * FROM UTENTEAUSL WHERE Email = ? AND Password = ?',[mail, psw],(err,rows,fields)=>{
-        response.json(rows[0]);
+app.post("/auslogin",urlEncodedParser,(request,response)=>{
+    const parsedUser ={
+        email: request.body.email,
+        password: request.body.password
+    }
+    pool.query("SELECT Email,Password FROM UTENTEAUSL WHERE Email = ?",[parsedUser.email],(err,rows)=>{
+        if(rows[0] != undefined){
+            let encPass = cipher.encryptPBKDF2(parsedUser.password);
+            if(encPass === rows[0].Password){
+                response.status(200).send(rows[0].Email);
+            }
+            else{
+                response.status(400).send("Credenziali invalide");
+            }
+        }
+        else{
+            response.status(404).send("Utente non trovato");
+        }
     })
 })
 
