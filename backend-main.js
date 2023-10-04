@@ -49,6 +49,8 @@ app.post("/auslogin",urlEncodedParser,(request,response)=>{
     })
 })
 
+
+
 app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
     const kidParams = {
         codiceFiscale:request.body.codiceFiscale,
@@ -62,6 +64,48 @@ app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
         }
         else{
             response.status(404).send("Menu non trovato");
+        }
+    })
+})
+
+app.post("/kidlogin",urlEncodedParser,(request,response)=>{
+    const kidUser ={
+        codiceFiscale: request.body.email,
+        password: request.body.password
+    }
+    pool.query("SELECT Email,Password FROM BAMBINO WHERE Email = ?",[kidUser.email],(err,rows)=>{
+        if(rows[0] != undefined){
+            let encPass = cipher.encryptPBKDF2(kidUser.password);
+            if(encPass === rows[0].Password){
+                response.status(200).send(rows[0].Email);
+            }
+            else{
+                response.status(400).send("Credenziali invalide");
+            }
+        }
+        else{
+            response.status(404).send("Utente non trovato");
+        }
+    })
+})
+
+app.post("/getkid",urlEncodedParser,(request,response)=>{
+    const kidUser ={
+        codiceFiscale: request.body.email,
+        password: request.body.password
+    }
+    pool.query("SELECT * FROM BAMBINO WHERE Email = ?",[kidUser.email],(err,rows)=>{
+        if(rows[0] != undefined){
+            let encPass = cipher.encryptPBKDF2(kidUser.password);
+            if(encPass === rows[0].Password){
+                response.status(200).send(rows[0].Email);
+            }
+            else{
+                response.status(400).send("Credenziali invalide");
+            }
+        }
+        else{
+            response.status(404).send("Utente non trovato");
         }
     })
 })
