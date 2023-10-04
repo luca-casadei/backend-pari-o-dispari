@@ -49,6 +49,23 @@ app.post("/auslogin",urlEncodedParser,(request,response)=>{
     })
 })
 
+app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
+    const kidParams = {
+        codiceFiscale:request.body.codiceFiscale,
+        idMenu:request.body.idMenu
+    }
+    pool.query("SELECT PIATTO.Id,PIATTO.Nome,PIATTO.Descrizione,MENU.Nome,MENUBAMBINO.Stagione FROM MENUBAMBINO "+
+        "INNER JOIN MENU ON MENUBAMBINO.IdMenu=MENU.Id INNER JOIN COMPOSIZIONEMENU ON MENU.Id = COMPOSIZIONEMENU.IdMenu "+ 
+        "INNER JOIN PIATTO ON COMPOSIZIONEMENU.IdPiatto = Piatto.Id WHERE MENUBAMBINO.CodiceFiscale=? AND MENUBAMBINO.IdMenu=?",[kidParams.codiceFiscale,kidParams.idMenu],(err,rows)=>{
+        if(rows[0] != undefined){
+            response.json(rows[0]);
+        }
+        else{
+            response.status(404).send("Menu non trovato");
+        }
+    })
+})
+
 //End of main functions
 app.listen(port,()=>{
     console.log("Backend in ascolto sulla porta: " + port)
