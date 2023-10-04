@@ -2,7 +2,10 @@ const cipher = require("./security/cipher")
 const sql = require("mysql2")
 const dbConf = require("./db/dbconfig.json")
 const bodyParser = require("body-parser")
-const jsonParser = bodyParser.json()
+
+//Decommentare solo se necessaria una richiesta senza encoding (es. da Native)
+//const jsonParser = bodyParser.json()
+
 const urlEncodedParser = bodyParser.urlencoded({extended:false});
 var pool = sql.createPool(dbConf);
 
@@ -17,7 +20,7 @@ const path = require("path")
 
 const app = express()
 const port = process.env.PORT || 3000
-const favicon = require("serve-favicon")
+const favicon = require("serve-favicon");
 
 //Favicon serving with serve-favicon module.
 app.use(favicon(path.join(__dirname,"resources","favicon.ico")))
@@ -37,7 +40,11 @@ app.post("/auslogin",urlEncodedParser,(request,response)=>{
         if(rows[0] != undefined){
             let encPass = cipher.encryptPBKDF2(parsedUser.password);
             if(encPass === rows[0].Password){
-                response.status(200).send(rows[0].Email);
+                const token = cipher.getToken(parsedUser);
+                response.status(200).send({
+                    email: parsedUser.email,
+                    token: token
+                });
             }
             else{
                 response.status(400).send("Credenziali invalide");
@@ -49,7 +56,22 @@ app.post("/auslogin",urlEncodedParser,(request,response)=>{
     })
 })
 
-
+app.post("/auth",urlEncodedParser, (request,response) =>{
+    const requestedUser = {
+        email: request.body.email,
+        token: request.body.token
+    }
+    if(cipher.isTokenValid(requestedUser.token)){
+        response.status(200).send({
+            valid:true
+        });
+    }
+    else{
+        response.status(401).send({
+            valid:false
+        });
+    }
+})
 
 app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
     const kidParams = {
@@ -108,7 +130,7 @@ app.post("/getkid",urlEncodedParser,(request,response)=>{
             response.status(404).send("Utente non trovato");
         }
     })
-})
+
 
 //End of main functions
 app.listen(port,()=>{
