@@ -96,11 +96,10 @@ app.post("/kidlogin",urlEncodedParser,(request,response)=>{
             if (encPass === rows[0].Password) {
               const token = cipher.getToken(kidUser);
               response.status(200).send({
-                email: kidUser.email,
                 token: token,
               });
             } else {
-              response.status(400).send("Credenziali invalide");
+              response.status(400).send({token:undefined});
             }
         }
         })
