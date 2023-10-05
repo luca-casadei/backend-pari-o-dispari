@@ -84,20 +84,26 @@ app.post("/kidlogin",urlEncodedParser,(request,response)=>{
         codiceFiscale: request.body.codiceFiscale,
         password: request.body.password
     }
-    pool.query("SELECT Email,Password FROM BAMBINO WHERE CodiceFiscale = ?",[kidUser.codiceFiscale],(err,rows)=>{
-        if(rows[0] != undefined){
-            let encPass = cipher.encryptPBKDF2(kidUser.password);
-            if(encPass === rows[0].Password){
-                response.status(200).send({'valido':true});
-            }
-            else{
-                response.status(400).send({'valido':false});
-            }
-        }
-        else{
+    pool.query("SELECT Email,Password FROM BAMBINO WHERE CodiceFiscale = ?"
+    ,[kidUser.codiceFiscale]
+    ,(err,rows)=>{
+        if (rows == undefined) {
+            response.status(502).send("Database non raggiungibile");
+          } else if (rows[0] == undefined) {
             response.status(404).send("Utente non trovato");
+          } else {
+            let encPass = cipher.encryptPBKDF2(kidUser.password);
+            if (encPass === rows[0].Password) {
+              const token = cipher.getToken(kidUser);
+              response.status(200).send({
+                email: kidUser.email,
+                token: token,
+              });
+            } else {
+              response.status(400).send("Credenziali invalide");
+            }
         }
-    })
+        })
 })
 
 app.post("/getkid",urlEncodedParser,(request,response)=>{
@@ -106,16 +112,10 @@ app.post("/getkid",urlEncodedParser,(request,response)=>{
         password: request.body.password,
         token:request.body.token
     }
-    if(cipher.isTokenValid(token)){
+    if(cipher.isTokenValid()){
         pool.query("SELECT * FROM BAMBINO WHERE CodiceFiscale = ?",[kidUser.codiceFiscale],(err,rows)=>{
             if(rows[0] != undefined){
-                let encPass = cipher.encryptPBKDF2(kidUser.password);
-                if(encPass === rows[0].Password){
-                    response.status(200).send(rows[0].Email);
-                }
-                else{
-                    response.status(400).send("Credenziali invalide");
-                }
+                response.status(200).send(rows[0]);
             }
             else{
                 response.status(404).send("Utente non trovato");
@@ -128,19 +128,18 @@ app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
     const kidParams = {
         codiceFiscale:request.body.codiceFiscale,
         idMenu:request.body.idMenu,
-        token:request.body.token
     }
-    if(cipher.isTokenValid(kidParams.token)){
-        pool.query("SELECT PIATTO.Id,PIATTO.Nome,PIATTO.Descrizione,MENU.Nome,MENUBAMBINO.Stagione FROM MENUBAMBINO "+
+    if(cipher.isTokenValid()){
+        pool.query("SELECT PIATTO.Id,PIATTO.Nome AS NomePiatto,PIATTO.Descrizione,MENU.Nome AS NomeMenu,MENUBAMBINO.Stagione FROM MENUBAMBINO "+
         "INNER JOIN MENU ON MENUBAMBINO.IdMenu=MENU.Id INNER JOIN COMPOSIZIONEMENU ON MENU.Id = COMPOSIZIONEMENU.IdMenu "+ 
-        "INNER JOIN PIATTO ON COMPOSIZIONEMENU.IdPiatto = Piatto.Id WHERE MENUBAMBINO.CodiceFiscale=? AND MENUBAMBINO.IdMenu=?",[kidParams.codiceFiscale,kidParams.idMenu],(err,rows)=>{
+        "INNER JOIN PIATTO ON COMPOSIZIONEMENU.IdPiatto = PIATTO.Id WHERE MENUBAMBINO.CodiceFiscaleBambino=? AND MENUBAMBINO.IdMenu=?",[kidParams.codiceFiscale,kidParams.idMenu],(err,rows)=>{
         if(rows[0] != undefined){
-            response.json(rows[0]);
+            response.status(404).send(rows[0]);
         }
         else{
             response.status(404).send("Menu non trovato");
         }
-    })
+        })
     }
 })
 
