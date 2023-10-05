@@ -1,7 +1,7 @@
-{
+const dbConfig = {
     "host": "www.pariodispari.com",
     "user": "sagnfmit_apis",
-    "password": "baruffo2020!!AA",
+    "password": process.env.DB_PASSWORD,
     "database": "sagnfmit_pariodisparidb",
     "waitForConnections": true,
     "connectionLimit": 10,
@@ -12,3 +12,5 @@
     "keepAliveInitialDelay": 0,
     "port": 3306
 }
+
+module.export = {dbConfig}

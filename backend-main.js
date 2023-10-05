@@ -1,6 +1,6 @@
 const cipher = require("./security/cipher");
 const sql = require("mysql2");
-const dbConf = require("./db/dbconfig.json");
+const dbConf = require("./db/dbconfig");
 const bodyParser = require("body-parser");
 
 //Decommentare solo se necessaria una richiesta senza encoding (es. da Native)
@@ -60,6 +60,54 @@ app.post("/auslogin", urlEncodedParser, (request, response) => {
     }
   );
 });
+
+
+//FUNZIONI CUCINA
+app.post("/cheflogin", urlEncodedParser, (request, response) => {
+    const chefUser = {
+      username: request.body.username,
+      password: request.body.password,
+    };
+    pool.query(
+      "SELECT Username,Password FROM UTENTECUCINA WHERE Username = ?",
+      [chefUser.username],
+      (err, rows) => {
+        if (rows[0] != undefined) {
+          let encPass = cipher.encryptPBKDF2(chefUser.password);
+          if (encPass === rows[0].Password) {
+            response.status(200).send(rows[0].Username);
+          } else {
+            response.status(400).send("Credenziali invalide");
+          }
+        } else {
+          response.status(404).send("Utente non trovato");
+        }
+      }
+    );
+  });
+  
+  app.post("/getchef", urlEncodedParser, (request, response) => {
+    const chefUser = {
+      username: request.body.username,
+      password: request.body.password,
+    };
+    pool.query(
+      "SELECT * FROM UTENTECUCINA WHERE Username = ?",
+      [chefUser.username],
+      (err, rows) => {
+        if (rows[0] != undefined) {
+          let encPass = cipher.encryptPBKDF2(chefUser.password);
+          if (encPass === rows[0].Password) {
+            response.status(200).send(rows[0].Username);
+          } else {
+            response.status(400).send("Credenziali invalide");
+          }
+        } else {
+          response.status(404).send("Utente non trovato");
+        }
+      }
+    );
+  });
 
 //FUNZIONI DI AUTENTICAZIONE
 app.post("/auth", urlEncodedParser, (request, response) => {
