@@ -76,17 +76,17 @@ app.post("/auth",urlEncodedParser, (request,response) =>{
 
 app.post("/kidlogin",urlEncodedParser,(request,response)=>{
     const kidUser ={
-        codiceFiscale: request.body.email,
+        codiceFiscale: request.body.codiceFiscale,
         password: request.body.password
     }
-    pool.query("SELECT Email,Password FROM BAMBINO WHERE Email = ?",[kidUser.email],(err,rows)=>{
+    pool.query("SELECT Email,Password FROM BAMBINO WHERE CodiceFiscale = ?",[kidUser.codiceFiscale],(err,rows)=>{
         if(rows[0] != undefined){
             let encPass = cipher.encryptPBKDF2(kidUser.password);
             if(encPass === rows[0].Password){
-                response.status(200).send(rows[0].Email);
+                response.status(200).send({'valido':true});
             }
             else{
-                response.status(400).send("Credenziali invalide");
+                response.status(400).send({'valido':false});
             }
         }
         else{
@@ -97,12 +97,12 @@ app.post("/kidlogin",urlEncodedParser,(request,response)=>{
 
 app.post("/getkid",urlEncodedParser,(request,response)=>{
     const kidUser ={
-        codiceFiscale: request.body.email,
+        codiceFiscale: request.body.codiceFiscale,
         password: request.body.password,
         token:request.body.token
     }
     if(cipher.isTokenValid(token)){
-        pool.query("SELECT * FROM BAMBINO WHERE Email = ?",[kidUser.email],(err,rows)=>{
+        pool.query("SELECT * FROM BAMBINO WHERE CodiceFiscale = ?",[kidUser.codiceFiscale],(err,rows)=>{
             if(rows[0] != undefined){
                 let encPass = cipher.encryptPBKDF2(kidUser.password);
                 if(encPass === rows[0].Password){
