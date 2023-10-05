@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 //const jsonParser = bodyParser.json()
 
 const urlEncodedParser = bodyParser.urlencoded({ extended: false });
-var pool = sql.createPool(dbConf);
+var pool = sql.createPool(dbConf.parameters);
 
 /*Environment variables for secrets*/
 require("dotenv").config();

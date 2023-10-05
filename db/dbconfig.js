@@ -1,4 +1,6 @@
-const dbConfig = {
+require("dotenv").config();
+
+var parameters = {
     "host": "www.pariodispari.com",
     "user": "sagnfmit_apis",
     "password": process.env.DB_PASSWORD,
@@ -13,4 +15,4 @@ const dbConfig = {
     "port": 3306
 }
 
-module.export = {dbConfig}
+module.exports = {parameters}
