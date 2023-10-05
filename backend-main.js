@@ -56,7 +56,8 @@ app.post("/auslogin", urlEncodedParser, (request, response) => {
           });
         } else {
           response.status(400).send("Credenziali invalide");
-        }    
+        }
+    }    
       })
 })
 
@@ -142,21 +143,6 @@ app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
     })
     }
 })
-
-//End of main functions
-app.listen(port,()=>{
-    console.log("Backend in ascolto sulla porta: " + port)
-})
-
-//evita che node si chiuda su un errore
-process.on('uncaughtException', function (err) {
-    console.log('Caught exception: ', err);
-})
-      }
-    }
-  );
-});
-
 
 //FUNZIONI CUCINA
 app.post("/cheflogin", urlEncodedParser, (request, response) => {
