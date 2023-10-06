@@ -84,9 +84,13 @@ app.post("/kidlogin",urlEncodedParser,(request,response)=>{
         codiceFiscale: request.body.codiceFiscale,
         password: request.body.password
     }
+    console.log(kidUser.codiceFiscale);
+    console.log(kidUser.password);
     pool.query("SELECT Email,Password FROM BAMBINO WHERE CodiceFiscale = ?"
     ,[kidUser.codiceFiscale]
     ,(err,rows)=>{
+      console.log(rows);
+      console.log(row[0]);
         if (rows == undefined) {
             response.status(502).send("Database non raggiungibile");
           } else if (rows[0] == undefined) {
