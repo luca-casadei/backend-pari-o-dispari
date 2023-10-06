@@ -196,13 +196,9 @@ app.post("/auth", urlEncodedParser, (request, response) => {
     token: request.body.token,
   };
   if (cipher.isTokenValid(requestedUser.token)) {
-    response.status(200).send({
-      valid: true,
-    });
+    response.status(200).send(true);
   } else {
-    response.status(401).send({
-      valid: false,
-    });
+    response.status(401).send(false);
   }
 });
 
