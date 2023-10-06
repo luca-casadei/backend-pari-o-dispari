@@ -23,8 +23,7 @@ module.exports = {
 
   isTokenValid: (token) => {
     try {
-      jwt.verify(token, process.env.TOKEN_KEY);
-      return true;
+      return jwt.verify(token, process.env.TOKEN_KEY);
     } catch (error) {
       return false;
     }

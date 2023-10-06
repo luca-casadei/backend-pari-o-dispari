@@ -188,16 +188,18 @@ app.post("/cheflogin", urlEncodedParser, (request, response) => {
 //FUNZIONI DI AUTENTICAZIONE
 app.post("/auth", urlEncodedParser, (request, response) => {
   const requestedUser = {
-    email: request.body.email,
     token: request.body.token,
   };
-  if (cipher.isTokenValid(requestedUser.token)) {
+  let mail = cipher.isTokenValid(requestedUser.token).email
+  if (mail) {
     response.status(200).send({
-      valid: true,
+      valid:true,
+      username: mail
     });
   } else {
     response.status(401).send({
-      valid: false,
+      valid:false,
+      username: ""
     });
   }
 });
