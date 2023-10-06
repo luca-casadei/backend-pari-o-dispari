@@ -139,51 +139,46 @@ app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
 })
 
 //FUNZIONI CUCINA
-app.post("/cheflogin", urlEncodedParser, (request, response) => {
-    const chefUser = {
-      username: request.body.username,
-      password: request.body.password,
-    };
-    pool.query(
-      "SELECT Username,Password FROM UTENTECUCINA WHERE Username = ?",
-      [chefUser.username],
-      (err, rows) => {
-        if (rows[0] != undefined) {
+app.post("/cheflogin",urlEncodedParser,(request,response)=>{
+  const chefUser = {
+    username: request.body.username,
+    password: request.body.password,
+  };
+  pool.query("SELECT Username,Password FROM UTENTECUCINA WHERE Username = ?"
+  ,[chefUser.username]
+  ,(err,rows)=>{
+      if (rows == undefined) {
+          response.status(502).send("Database non raggiungibile");
+        } else if (rows[0] == undefined) {
+          response.status(404).send("Utente non trovato");
+        } else {
           let encPass = cipher.encryptPBKDF2(chefUser.password);
           if (encPass === rows[0].Password) {
-            response.status(200).send(rows[0].Username);
+            const token = cipher.getToken(chefUser);
+            response.status(200).send({
+              token: token,
+            });
           } else {
-            response.status(400).send("Credenziali invalide");
+            response.status(400).send({token:undefined});
           }
-        } else {
-          response.status(404).send("Utente non trovato");
-        }
       }
-    );
-  });
-  
-  app.post("/getchef", urlEncodedParser, (request, response) => {
-    const chefUser = {
-      username: request.body.username,
-      password: request.body.password,
-    };
-    pool.query(
-      "SELECT * FROM UTENTECUCINA WHERE Username = ?",
-      [chefUser.username],
-      (err, rows) => {
-        if (rows[0] != undefined) {
-          let encPass = cipher.encryptPBKDF2(chefUser.password);
-          if (encPass === rows[0].Password) {
-            response.status(200).send(rows[0].Username);
-          } else {
-            response.status(400).send("Credenziali invalide");
-          }
-        } else {
-          response.status(404).send("Utente non trovato");
-        }
+      })
+})
+
+app.post("/getchef",urlEncodedParser,(request,response)=>{
+  const chefUser = {
+    username: request.body.username,
+    password: request.body.password,
+  };
+  pool.query("SELECT * FROM UTENTECUCINA WHERE Username = ?",[chefUser.username],(err,rows)=>{
+      if(rows[0] != undefined){
+          response.status(200).send(rows[0]);
       }
-    );
-  });
+      else{
+          response.status(404).send("Utente non trovato");
+      }
+  })
+})
 
 //FUNZIONI DI AUTENTICAZIONE
 app.post("/auth", urlEncodedParser, (request, response) => {
