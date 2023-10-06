@@ -109,18 +109,15 @@ app.post("/getkid",urlEncodedParser,(request,response)=>{
     const kidUser ={
         codiceFiscale: request.body.codiceFiscale,
         password: request.body.password,
-        token:request.body.token
     }
-    if(cipher.isTokenValid()){
-        pool.query("SELECT * FROM BAMBINO WHERE CodiceFiscale = ?",[kidUser.codiceFiscale],(err,rows)=>{
-            if(rows[0] != undefined){
-                response.status(200).send(rows[0]);
-            }
-            else{
-                response.status(404).send("Utente non trovato");
-            }
-        })
-    }
+    pool.query("SELECT * FROM BAMBINO WHERE CodiceFiscale = ?",[kidUser.codiceFiscale],(err,rows)=>{
+        if(rows[0] != undefined){
+            response.status(200).send(rows[0]);
+        }
+        else{
+            response.status(404).send("Utente non trovato");
+        }
+    })
 })
 
 app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
@@ -128,18 +125,17 @@ app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
         codiceFiscale:request.body.codiceFiscale,
         idMenu:request.body.idMenu,
     }
-    if(cipher.isTokenValid()){
-        pool.query("SELECT PIATTO.Id,PIATTO.Nome AS NomePiatto,PIATTO.Descrizione,MENU.Nome AS NomeMenu,MENUBAMBINO.Stagione FROM MENUBAMBINO "+
+    pool.query("SELECT PIATTO.Id,PIATTO.Nome AS NomePiatto,PIATTO.Descrizione,MENU.Nome AS NomeMenu,MENUBAMBINO.Stagione FROM MENUBAMBINO "+
         "INNER JOIN MENU ON MENUBAMBINO.IdMenu=MENU.Id INNER JOIN COMPOSIZIONEMENU ON MENU.Id = COMPOSIZIONEMENU.IdMenu "+ 
         "INNER JOIN PIATTO ON COMPOSIZIONEMENU.IdPiatto = PIATTO.Id WHERE MENUBAMBINO.CodiceFiscaleBambino=? AND MENUBAMBINO.IdMenu=?",[kidParams.codiceFiscale,kidParams.idMenu],(err,rows)=>{
-        if(rows[0] != undefined){
-            response.status(404).send(rows[0]);
+        if (rows == undefined) {
+          response.status(502).send("Database non raggiungibile");
+        } else if (rows[0] == undefined) {
+          response.status(404).send("Utente non trovato");
+        } else {
+          response.status(200).send(rows[0]); 
         }
-        else{
-            response.status(404).send("Menu non trovato");
-        }
-        })
-    }
+    })    
 })
 
 //FUNZIONI CUCINA
