@@ -1,4 +1,4 @@
 {
-    "appService.defaultWebAppToDeploy": "/subscriptions/4cd4f104-d5ca-49ee-b52c-00a4ce80d3ca/resourceGroups/Pari-o-Dispari/providers/Microsoft.Web/sites/apis-pari-o-dispari",
+    "appService.defaultWebAppToDeploy": "None",
     "appService.deploySubpath": "."
 }

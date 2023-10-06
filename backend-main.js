@@ -191,6 +191,7 @@ app.post("/auth", urlEncodedParser, (request, response) => {
     token: request.body.token,
   };
   let mail = cipher.isTokenValid(requestedUser.token).email
+  console.log(mail);
   if (mail) {
     response.status(200).send({
       valid:true,
