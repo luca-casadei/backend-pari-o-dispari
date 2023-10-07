@@ -113,7 +113,6 @@ app.post("/kidlogin", urlEncodedParser, (request, response) => {
 app.post("/getkid", urlEncodedParser, (request, response) => {
   const kidUser = {
     codiceFiscale: request.body.codiceFiscale,
-    password: request.body.password,
   };
   pool.query(
     "SELECT * FROM BAMBINO WHERE CodiceFiscale = ?",
@@ -149,6 +148,25 @@ app.post("/getkidmenu", urlEncodedParser, (request, response) => {
     }
   );
 });
+
+
+app.post("/setkidpassword",urlEncodedParser,(request,response)=>{
+  const kidUser ={
+      codiceFiscale: request.body.codiceFiscale,
+      password: cipher.encryptPBKDF2(request.body.password)
+  }
+  pool.query("UPDATE BAMBINO SET BAMBINO.Password = ? WHERE CodiceFiscale = ?"
+  ,[kidUser.password,kidUser.codiceFiscale]
+  ,(err,rows)=>{
+      if (rows == undefined) {
+          response.status(502).send("Database non raggiungibile");
+        } else if (rows[0] == undefined) {
+          response.status(404).send("Utente non trovato");
+        } else {
+          response.status(200).send("Password modificata");
+      }
+      })
+})
 
 //FUNZIONI CUCINA
 app.post("/cheflogin", urlEncodedParser, (request, response) => {
@@ -217,26 +235,6 @@ app.post("/auth", urlEncodedParser, (request, response) => {
   }
 });
 
-//FUNZIONI FAMIGLIE
-app.post("/getkidmenu", urlEncodedParser, (request, response) => {
-  const kidParams = {
-    codiceFiscale: request.body.codiceFiscale,
-    idMenu: request.body.idMenu,
-  };
-  pool.query(
-    "SELECT PIATTO.Id,PIATTO.Nome,PIATTO.Descrizione,MENU.Nome,MENUBAMBINO.Stagione FROM MENUBAMBINO " +
-      "INNER JOIN MENU ON MENUBAMBINO.IdMenu=MENU.Id INNER JOIN COMPOSIZIONEMENU ON MENU.Id = COMPOSIZIONEMENU.IdMenu " +
-      "INNER JOIN PIATTO ON COMPOSIZIONEMENU.IdPiatto = Piatto.Id WHERE MENUBAMBINO.CodiceFiscale=? AND MENUBAMBINO.IdMenu=?",
-    [kidParams.codiceFiscale, kidParams.idMenu],
-    (err, rows) => {
-      if (rows[0] != undefined) {
-        response.json(rows[0]);
-      } else {
-        response.status(404).send("Menu non trovato");
-      }
-    }
-  );
-});
 
 //End of main functions
 app.listen(port, () => {
