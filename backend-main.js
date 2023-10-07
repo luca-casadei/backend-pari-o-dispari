@@ -57,166 +57,162 @@ app.post("/auslogin", urlEncodedParser, (request, response) => {
         } else {
           response.status(400).send("Credenziali invalide");
         }
-    }    
-      })
-})
-
-app.post("/auth",urlEncodedParser, (request,response) =>{
-    const requestedUser = {
-        email: request.body.email,
-        token: request.body.token
-    }
-    if(cipher.isTokenValid(requestedUser.token)){
-        response.status(200).send({
-            valid:true
-        });
-    }
-    else{
-        response.status(401).send({
-            valid:false
-        });
-    }
-})
-
-  //FUNZIONI BAMBINO
-app.post("/kidlogin",urlEncodedParser,(request,response)=>{
-    const kidUser ={
-        codiceFiscale: request.body.codiceFiscale,
-        password: request.body.password
-    }
-    pool.query("SELECT Email,Password FROM BAMBINO WHERE CodiceFiscale = ?"
-    ,[kidUser.codiceFiscale]
-    ,(err,rows)=>{
-        if (rows == undefined) {
-            response.status(502).send("Database non raggiungibile");
-          } else if (rows[0] == undefined) {
-            response.status(404).send("Utente non trovato");
-          } else {
-            let encPass = cipher.encryptPBKDF2(kidUser.password);
-            if (encPass === rows[0].Password) {
-              const token = cipher.getToken(kidUser);
-              response.status(200).send({
-                token: token,
-              });
-            } else {
-              response.status(400).send({token:undefined});
-            }
-        }
-        })
-})
-
-app.post("/getkid",urlEncodedParser,(request,response)=>{
-    const kidUser ={
-        codiceFiscale: request.body.codiceFiscale,
-    }
-    pool.query("SELECT * FROM BAMBINO WHERE CodiceFiscale = ?",[kidUser.codiceFiscale],(err,rows)=>{
-        if(rows[0] != undefined){
-            response.status(200).send(rows[0]);
-        }
-        else{
-            response.status(404).send("Utente non trovato");
-        }
-    })
-})
-
-app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
-    const kidParams = {
-        codiceFiscale:request.body.codiceFiscale,
-        idMenu:request.body.idMenu,
-    }
-    pool.query("SELECT PIATTO.Id,PIATTO.Nome AS NomePiatto,PIATTO.Descrizione,MENU.Nome AS NomeMenu,MENUBAMBINO.Stagione FROM MENUBAMBINO "+
-        "INNER JOIN MENU ON MENUBAMBINO.IdMenu=MENU.Id INNER JOIN COMPOSIZIONEMENU ON MENU.Id = COMPOSIZIONEMENU.IdMenu "+ 
-        "INNER JOIN PIATTO ON COMPOSIZIONEMENU.IdPiatto = PIATTO.Id WHERE MENUBAMBINO.CodiceFiscaleBambino=? AND MENUBAMBINO.IdMenu=?",[kidParams.codiceFiscale,kidParams.idMenu],(err,rows)=>{
-        if (rows == undefined) {
-          response.status(502).send("Database non raggiungibile");
-        } else if (rows[0] == undefined) {
-          response.status(404).send("Utente non trovato");
-        } else {
-          response.status(200).send(rows[0]); 
-        }
-    })    
-})
-
-app.post("/setkidpassword",urlEncodedParser,(request,response)=>{
-  const kidUser ={
-      codiceFiscale: request.body.codiceFiscale,
-      password: cipher.encryptPBKDF2(request.body.password)
-  }
-  pool.query("UPDATE BAMBINO SET BAMBINO.Password = ? WHERE CodiceFiscale = ?"
-  ,[kidUser.password,kidUser.codiceFiscale]
-  ,(err,rows)=>{
-      if (rows == undefined) {
-          response.status(502).send("Database non raggiungibile");
-        } else if (rows[0] == undefined) {
-          response.status(404).send("Utente non trovato");
-        } else {
-          response.status(200).send("Password modificata");
       }
-      })
-})
+    }
+  );
+});
+
+app.post("/auth", urlEncodedParser, (request, response) => {
+  const requestedUser = {
+    email: request.body.email,
+    token: request.body.token,
+  };
+  let mail = cipher.isTokenValid(requestedUser.token).email;
+  if (mail) {
+    response.status(200).send({
+      valid: true,
+      username: mail,
+    });
+  } else {
+    response.status(401).send({
+      valid: false,
+      username: "",
+    });
+  }
+});
+
+//FUNZIONI BAMBINO
+app.post("/kidlogin", urlEncodedParser, (request, response) => {
+  const kidUser = {
+    codiceFiscale: request.body.codiceFiscale,
+    password: request.body.password,
+  };
+  pool.query(
+    "SELECT Email,Password FROM BAMBINO WHERE CodiceFiscale = ?",
+    [kidUser.codiceFiscale],
+    (err, rows) => {
+      if (rows == undefined) {
+        response.status(502).send("Database non raggiungibile");
+      } else if (rows[0] == undefined) {
+        response.status(404).send("Utente non trovato");
+      } else {
+        let encPass = cipher.encryptPBKDF2(kidUser.password);
+        if (encPass === rows[0].Password) {
+          const token = cipher.getToken(kidUser);
+          response.status(200).send({
+            token: token,
+          });
+        } else {
+          response.status(400).send({ token: undefined });
+        }
+      }
+    }
+  );
+});
+
+app.post("/getkid", urlEncodedParser, (request, response) => {
+  const kidUser = {
+    codiceFiscale: request.body.codiceFiscale,
+    password: request.body.password,
+  };
+  pool.query(
+    "SELECT * FROM BAMBINO WHERE CodiceFiscale = ?",
+    [kidUser.codiceFiscale],
+    (err, rows) => {
+      if (rows[0] != undefined) {
+        response.status(200).send(rows[0]);
+      } else {
+        response.status(404).send("Utente non trovato");
+      }
+    }
+  );
+});
+
+app.post("/getkidmenu", urlEncodedParser, (request, response) => {
+  const kidParams = {
+    codiceFiscale: request.body.codiceFiscale,
+    idMenu: request.body.idMenu,
+  };
+  pool.query(
+    "SELECT PIATTO.Id,PIATTO.Nome AS NomePiatto,PIATTO.Descrizione,MENU.Nome AS NomeMenu,MENUBAMBINO.Stagione FROM MENUBAMBINO " +
+      "INNER JOIN MENU ON MENUBAMBINO.IdMenu=MENU.Id INNER JOIN COMPOSIZIONEMENU ON MENU.Id = COMPOSIZIONEMENU.IdMenu " +
+      "INNER JOIN PIATTO ON COMPOSIZIONEMENU.IdPiatto = PIATTO.Id WHERE MENUBAMBINO.CodiceFiscaleBambino=? AND MENUBAMBINO.IdMenu=?",
+    [kidParams.codiceFiscale, kidParams.idMenu],
+    (err, rows) => {
+      if (rows == undefined) {
+        response.status(502).send("Database non raggiungibile");
+      } else if (rows[0] == undefined) {
+        response.status(404).send("Utente non trovato");
+      } else {
+        response.status(200).send(rows[0]);
+      }
+    }
+  );
+});
 
 //FUNZIONI CUCINA
 app.post("/cheflogin", urlEncodedParser, (request, response) => {
-    const chefUser = {
-      username: request.body.username,
-      password: request.body.password,
-    };
-    pool.query(
-      "SELECT Username,Password FROM UTENTECUCINA WHERE Username = ?",
-      [chefUser.username],
-      (err, rows) => {
-        if (rows[0] != undefined) {
-          let encPass = cipher.encryptPBKDF2(chefUser.password);
-          if (encPass === rows[0].Password) {
-            response.status(200).send(rows[0].Username);
-          } else {
-            response.status(400).send("Credenziali invalide");
-          }
+  const chefUser = {
+    username: request.body.username,
+    password: request.body.password,
+  };
+  pool.query(
+    "SELECT Username,Password FROM UTENTECUCINA WHERE Username = ?",
+    [chefUser.username],
+    (err, rows) => {
+      if (rows == undefined) {
+        response.status(502).send("Database non raggiungibile");
+      } else if (rows[0] == undefined) {
+        response.status(404).send("Utente non trovato");
+      } else {
+        let encPass = cipher.encryptPBKDF2(chefUser.password);
+        if (encPass === rows[0].Password) {
+          const token = cipher.getToken(chefUser);
+          response.status(200).send({
+            token: token,
+          });
         } else {
-          response.status(404).send("Utente non trovato");
+          response.status(400).send({ token: undefined });
         }
       }
-    );
-  });
-  
-  app.post("/getchef", urlEncodedParser, (request, response) => {
-    const chefUser = {
-      username: request.body.username,
-      password: request.body.password,
-    };
-    pool.query(
-      "SELECT * FROM UTENTECUCINA WHERE Username = ?",
-      [chefUser.username],
-      (err, rows) => {
-        if (rows[0] != undefined) {
-          let encPass = cipher.encryptPBKDF2(chefUser.password);
-          if (encPass === rows[0].Password) {
-            response.status(200).send(rows[0].Username);
-          } else {
-            response.status(400).send("Credenziali invalide");
-          }
-        } else {
-          response.status(404).send("Utente non trovato");
-        }
+    }
+  );
+});
+
+app.post("/getchef", urlEncodedParser, (request, response) => {
+  const chefUser = {
+    username: request.body.username,
+    password: request.body.password,
+  };
+  pool.query(
+    "SELECT * FROM UTENTECUCINA WHERE Username = ?",
+    [chefUser.username],
+    (err, rows) => {
+      if (rows[0] != undefined) {
+        response.status(200).send(rows[0]);
+      } else {
+        response.status(404).send("Utente non trovato");
       }
-    );
-  });
+    }
+  );
+});
 
 //FUNZIONI DI AUTENTICAZIONE
 app.post("/auth", urlEncodedParser, (request, response) => {
   const requestedUser = {
     token: request.body.token,
   };
-  let mail = cipher.isTokenValid(requestedUser.token).email
+  let mail = cipher.isTokenValid(requestedUser.token).email;
+  console.log(mail);
   if (mail) {
     response.status(200).send({
-      valid:true,
-      username: mail
+      valid: true,
+      username: mail,
     });
   } else {
     response.status(401).send({
-      valid:false,
-      username: ""
+      valid: false,
+      username: "",
     });
   }
 });
