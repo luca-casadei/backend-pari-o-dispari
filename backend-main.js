@@ -108,7 +108,6 @@ app.post("/kidlogin",urlEncodedParser,(request,response)=>{
 app.post("/getkid",urlEncodedParser,(request,response)=>{
     const kidUser ={
         codiceFiscale: request.body.codiceFiscale,
-        password: request.body.password,
     }
     pool.query("SELECT * FROM BAMBINO WHERE CodiceFiscale = ?",[kidUser.codiceFiscale],(err,rows)=>{
         if(rows[0] != undefined){
@@ -136,6 +135,24 @@ app.post("/getkidmenu",urlEncodedParser,(request,response)=>{
           response.status(200).send(rows[0]); 
         }
     })    
+})
+
+app.post("/setkidpassword",urlEncodedParser,(request,response)=>{
+  const kidUser ={
+      codiceFiscale: request.body.codiceFiscale,
+      password: cipher.encryptPBKDF2(request.body.password)
+  }
+  pool.query("UPDATE BAMBINO SET BAMBINO.Password = ? WHERE CodiceFiscale = ?"
+  ,[kidUser.password,kidUser.codiceFiscale]
+  ,(err,rows)=>{
+      if (rows == undefined) {
+          response.status(502).send("Database non raggiungibile");
+        } else if (rows[0] == undefined) {
+          response.status(404).send("Utente non trovato");
+        } else {
+          response.status(200).send("Password modificata");
+      }
+      })
 })
 
 //FUNZIONI CUCINA
