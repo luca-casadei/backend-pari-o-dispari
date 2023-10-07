@@ -149,7 +149,7 @@ app.post("/getkidmenu", urlEncodedParser, (request, response) => {
   );
 });
 
-
+//API per modificare unicamente la password di un bambino
 app.post("/setkidpassword",urlEncodedParser,(request,response)=>{
   const kidUser ={
       codiceFiscale: request.body.codiceFiscale,
@@ -160,11 +160,30 @@ app.post("/setkidpassword",urlEncodedParser,(request,response)=>{
   ,(err,rows)=>{
       if (rows == undefined) {
           response.status(502).send("Database non raggiungibile");
-        } else if (rows[0] == undefined) {
-          response.status(404).send("Utente non trovato");
         } else {
           response.status(200).send("Password modificata");
-      }
+        }
+      })
+})
+
+//API per modificare tutti i campi tolta la password del bambino
+app.post("/setkid",urlEncodedParser,(request,response)=>{
+  const kidUser ={
+      codiceFiscale: request.body.codiceFiscale,
+      nome:request.body.nome,
+      cognome:request.body.cognome,
+      dataNascita:request.body.dataNascita,
+      email:request.body.email,
+
+  }
+  pool.query("UPDATE BAMBINO SET BAMBINO.Nome = ?,BAMBINO.Cognome = ?,BAMBINO.DataNascita = ?, BAMBINO.Email = ?  WHERE CodiceFiscale = ?"
+  ,[kidUser.nome,kidUser.cognome,kidUser.dataNascita,kidUser.email,kidUser.codiceFiscale]
+  ,(err,rows)=>{
+      if (rows == undefined) {
+          response.status(502).send("Database non raggiungibile");
+        } else {
+          response.status(200).send("Password modificata");
+        }
       })
 })
 
