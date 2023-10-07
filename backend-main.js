@@ -215,6 +215,24 @@ app.post("/getchef", urlEncodedParser, (request, response) => {
   );
 });
 
+app.post("/setchefpassword",urlEncodedParser,(request,response)=>{
+  const chefUser ={
+      username: request.body.username,
+      password: cipher.encryptPBKDF2(request.body.password)
+  }
+  pool.query("UPDATE UTENTECUCINA SET UTENTECUCINA.Password = ? WHERE Username = ?"
+  ,[chefUser.password,chefUser.username]
+  ,(err,rows)=>{
+      if (rows == undefined) {
+          response.status(502).send("Database non raggiungibile");
+        } else if (rows[0] == undefined) {
+          response.status(404).send("Utente non trovato");
+        } else {
+          response.status(200).send("Password modificata");
+      }
+      })
+})
+
 //FUNZIONI DI AUTENTICAZIONE
 app.post("/auth", urlEncodedParser, (request, response) => {
   const requestedUser = {
