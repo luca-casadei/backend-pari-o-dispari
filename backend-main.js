@@ -4,7 +4,7 @@ const dbConf = require("./db/dbconfig");
 const bodyParser = require("body-parser");
 
 //Decommentare solo se necessaria una richiesta senza encoding (es. da Native)
-//const jsonParser = bodyParser.json()
+const jsonParser = bodyParser.json()
 
 const urlEncodedParser = bodyParser.urlencoded({ extended: false });
 var pool = sql.createPool(dbConf.parameters);
@@ -33,7 +33,7 @@ app.get("/", (request, response) => {
 });
 
 //FUNZIONI AUSL
-app.post("/auslogin", urlEncodedParser, (request, response) => {
+app.post("/auslogin", jsonParser, (request, response) => {
   const parsedUser = {
     email: request.body.email,
     password: request.body.password,
@@ -62,7 +62,7 @@ app.post("/auslogin", urlEncodedParser, (request, response) => {
   );
 });
 
-app.post("/auth", urlEncodedParser, (request, response) => {
+app.post("/auth", jsonParser, (request, response) => {
   const requestedUser = {
     email: request.body.email,
     token: request.body.token,
@@ -82,7 +82,7 @@ app.post("/auth", urlEncodedParser, (request, response) => {
 });
 
 //FUNZIONI BAMBINO
-app.post("/kidlogin", urlEncodedParser, (request, response) => {
+app.post("/kidlogin", jsonParser, (request, response) => {
   const kidUser = {
     codiceFiscale: request.body.codiceFiscale,
     password: request.body.password,
@@ -110,7 +110,7 @@ app.post("/kidlogin", urlEncodedParser, (request, response) => {
   );
 });
 
-app.post("/getkid", urlEncodedParser, (request, response) => {
+app.post("/getkid", jsonParser, (request, response) => {
   const kidUser = {
     codiceFiscale: request.body.codiceFiscale,
   };
@@ -127,7 +127,7 @@ app.post("/getkid", urlEncodedParser, (request, response) => {
   );
 });
 
-app.post("/getkidmenu", urlEncodedParser, (request, response) => {
+app.post("/getkidmenu", jsonParser, (request, response) => {
   const kidParams = {
     codiceFiscale: request.body.codiceFiscale,
     idMenu: request.body.idMenu,
@@ -150,7 +150,7 @@ app.post("/getkidmenu", urlEncodedParser, (request, response) => {
 });
 
 //API per modificare unicamente la password di un bambino
-app.post("/setkidpassword",urlEncodedParser,(request,response)=>{
+app.post("/setkidpassword",jsonParser,(request,response)=>{
   const kidUser ={
       codiceFiscale: request.body.codiceFiscale,
       password: cipher.encryptPBKDF2(request.body.password)
@@ -167,7 +167,7 @@ app.post("/setkidpassword",urlEncodedParser,(request,response)=>{
 })
 
 //API per modificare tutti i campi tolta la password del bambino
-app.post("/setkid",urlEncodedParser,(request,response)=>{
+app.post("/setkid",jsonParser,(request,response)=>{
   const kidUser ={
       codiceFiscale: request.body.codiceFiscale,
       nome:request.body.nome,
@@ -188,7 +188,7 @@ app.post("/setkid",urlEncodedParser,(request,response)=>{
 })
 
 //FUNZIONI CUCINA
-app.post("/cheflogin", urlEncodedParser, (request, response) => {
+app.post("/cheflogin", jsonParser, (request, response) => {
   const chefUser = {
     username: request.body.username,
     password: request.body.password,
@@ -216,7 +216,7 @@ app.post("/cheflogin", urlEncodedParser, (request, response) => {
   );
 });
 
-app.post("/getchef", urlEncodedParser, (request, response) => {
+app.post("/getchef", jsonParser, (request, response) => {
   const chefUser = {
     username: request.body.username,
     password: request.body.password,
@@ -234,7 +234,7 @@ app.post("/getchef", urlEncodedParser, (request, response) => {
   );
 });
 
-app.post("/setchefpassword",urlEncodedParser,(request,response)=>{
+app.post("/setchefpassword",jsonParser,(request,response)=>{
   const chefUser ={
       username: request.body.username,
       password: cipher.encryptPBKDF2(request.body.password)
@@ -253,7 +253,7 @@ app.post("/setchefpassword",urlEncodedParser,(request,response)=>{
 })
 
 //FUNZIONI DI AUTENTICAZIONE
-app.post("/auth", urlEncodedParser, (request, response) => {
+app.post("/auth", jsonParser, (request, response) => {
   const requestedUser = {
     token: request.body.token,
   };
