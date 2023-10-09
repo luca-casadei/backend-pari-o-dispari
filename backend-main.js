@@ -252,6 +252,23 @@ app.post("/setchefpassword",jsonParser,(request,response)=>{
       })
 })
 
+app.post("/getassociazionecucine", jsonParser, (request, response) => {
+  const chefUser = {
+    username: request.body.username,
+  };
+  pool.query(
+    "SELECT UsernameCucina,CodiceFiscaleBambino,Cognome AS CognomeBambino,Nome AS NomeBambino,DataNascita AS DataNascitaBambino,Email AS EmailBambino FROM ASSOCIAZIONECUCINE JOIN BAMBINO ON ASSOCIAZIONECUCINE.CodiceFiscaleBambino = BAMBINO.CodiceFiscale WHERE UsernameCucina = ?",
+    [chefUser.username],
+    (err, rows) => {
+      if (rows[0] != undefined) {
+        response.status(200).send(rows);
+      } else {
+        response.status(404).send("Utente non trovato");
+      }
+    }
+  );
+});
+
 //FUNZIONI DI AUTENTICAZIONE
 app.post("/auth", jsonParser, (request, response) => {
   const requestedUser = {
