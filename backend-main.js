@@ -244,8 +244,6 @@ app.post("/setchefpassword",jsonParser,(request,response)=>{
   ,(err,rows)=>{
       if (rows == undefined) {
           response.status(502).send("Database non raggiungibile");
-        } else if (rows[0] == undefined) {
-          response.status(404).send("Utente non trovato");
         } else {
           response.status(200).send("Password modificata");
       }
