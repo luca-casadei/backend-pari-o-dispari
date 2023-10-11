@@ -127,7 +127,7 @@ app.post("/getkid", jsonParser, (request, response) => {
   );
 });
 
-app.post("/getkidmenu", jsonParser, (request, response) => {
+app.post("/getkidmenuinfo", jsonParser, (request, response) => {
   const kidParams = {
     codiceFiscale: request.body.codiceFiscale,
     idMenu: request.body.idMenu,
@@ -164,28 +164,47 @@ app.post("/setkidpassword",jsonParser,(request,response)=>{
           response.status(200).send("Password modificata");
         }
       })
-})
-
-//API per modificare tutti i campi tolta la password del bambino
-app.post("/setkid",jsonParser,(request,response)=>{
-  const kidUser ={
-      codiceFiscale: request.body.codiceFiscale,
-      nome:request.body.nome,
-      cognome:request.body.cognome,
-      dataNascita:request.body.dataNascita,
-      email:request.body.email,
-
-  }
-  pool.query("UPDATE BAMBINO SET BAMBINO.Nome = ?,BAMBINO.Cognome = ?,BAMBINO.DataNascita = ?, BAMBINO.Email = ?  WHERE CodiceFiscale = ?"
-  ,[kidUser.nome,kidUser.cognome,kidUser.dataNascita,kidUser.email,kidUser.codiceFiscale]
-  ,(err,rows)=>{
-      if (rows == undefined) {
+    })
+    
+    //API per modificare tutti i campi tolta la password del bambino
+    app.post("/setkid",jsonParser,(request,response)=>{
+      const kidUser ={
+        codiceFiscale: request.body.codiceFiscale,
+        nome:request.body.nome,
+        cognome:request.body.cognome,
+        dataNascita:request.body.dataNascita,
+        email:request.body.email,
+        
+      }
+      pool.query("UPDATE BAMBINO SET BAMBINO.Nome = ?,BAMBINO.Cognome = ?,BAMBINO.DataNascita = ?, BAMBINO.Email = ?  WHERE CodiceFiscale = ?"
+      ,[kidUser.nome,kidUser.cognome,kidUser.dataNascita,kidUser.email,kidUser.codiceFiscale]
+      ,(err,rows)=>{
+        if (rows == undefined) {
           response.status(502).send("Database non raggiungibile");
         } else {
           response.status(200).send("Password modificata");
         }
       })
-})
+    })
+
+    app.post("/getidmenukid", jsonParser, (request, response) => {
+      const kidParams = {
+        codiceFiscale: request.body.codiceFiscale,
+      };
+      pool.query(
+        "SELECT MENUBAMBINO.IdMenu,MENUBAMBINO.Stagione WHERE MENUBAMBINO.CodiceFiscaleBambino=?",
+        [kidParams.codiceFiscale],
+        (err, rows) => {
+          if (rows == undefined) {
+            response.status(502).send("Database non raggiungibile");
+          } else if (rows[0] == undefined) {
+            response.status(404).send("Utente non trovato");
+          } else {
+            response.status(200).send(rows[0]);
+          }
+        }
+      );
+    });
 
 //FUNZIONI CUCINA
 app.post("/cheflogin", jsonParser, (request, response) => {
@@ -233,7 +252,6 @@ app.post("/getchef", jsonParser, (request, response) => {
     }
   );
 });
-
 app.post("/setchefpassword",jsonParser,(request,response)=>{
   const chefUser ={
       username: request.body.username,
