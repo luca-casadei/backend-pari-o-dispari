@@ -1,12 +1,13 @@
 const cipher = require("./security/cipher");
-const sql = require("mysql2");
+const sql = require("mysql");
 const dbConf = require("./db/dbconfig");
+const mainConfig = require("./config/generalConfig");
 const bodyParser = require("body-parser");
 
 //Decommentare solo se necessaria una richiesta senza encoding (es. da Native)
-const jsonParser = bodyParser.json()
+const jsonParser = bodyParser.json();
 
-const urlEncodedParser = bodyParser.urlencoded({ extended: false });
+//DB manager
 var pool = sql.createPool(dbConf.parameters);
 
 /*Environment variables for secrets*/
@@ -19,9 +20,17 @@ const express = require("express");
 const path = require("path");
 
 const app = express();
-const port = process.env.PORT || 3000;
 const favicon = require("serve-favicon");
-const { verify } = require("crypto");
+
+//HTTPS loading
+const reader = require("fs");
+const https = require("https");
+const privateKey = reader.readFileSync("./certificates/privkey1.pem");
+const certificate = reader.readFileSync("./certificates/fullchain1.pem");
+const httpsListener = https.createServer(
+  { key: privateKey, cert: certificate },
+  app
+);
 
 //Favicon serving with serve-favicon module.
 app.use(favicon(path.join(__dirname, "resources", "favicon.ico")));
@@ -42,6 +51,7 @@ app.post("/auslogin", jsonParser, (request, response) => {
     "SELECT Email,Password FROM UTENTEAUSL WHERE Email = ?",
     [parsedUser.email],
     (err, rows) => {
+      if (err) throw err;
       if (rows == undefined) {
         response.status(502).send("Database non raggiungibile");
       } else if (rows[0] == undefined) {
@@ -150,61 +160,70 @@ app.post("/getkidmenuinfo", jsonParser, (request, response) => {
 });
 
 //API per modificare unicamente la password di un bambino
-app.post("/setkidpassword",jsonParser,(request,response)=>{
-  const kidUser ={
-      codiceFiscale: request.body.codiceFiscale,
-      password: cipher.encryptPBKDF2(request.body.password)
-  }
-  pool.query("UPDATE BAMBINO SET BAMBINO.Password = ? WHERE CodiceFiscale = ?"
-  ,[kidUser.password,kidUser.codiceFiscale]
-  ,(err,rows)=>{
+app.post("/setkidpassword", jsonParser, (request, response) => {
+  const kidUser = {
+    codiceFiscale: request.body.codiceFiscale,
+    password: cipher.encryptPBKDF2(request.body.password),
+  };
+  pool.query(
+    "UPDATE BAMBINO SET BAMBINO.Password = ? WHERE CodiceFiscale = ?",
+    [kidUser.password, kidUser.codiceFiscale],
+    (err, rows) => {
       if (rows == undefined) {
-          response.status(502).send("Database non raggiungibile");
-        } else {
-          response.status(200).send("Password modificata");
-        }
-      })
-    })
-    
-    //API per modificare tutti i campi tolta la password del bambino
-    app.post("/setkid",jsonParser,(request,response)=>{
-      const kidUser ={
-        codiceFiscale: request.body.codiceFiscale,
-        nome:request.body.nome,
-        cognome:request.body.cognome,
-        dataNascita:request.body.dataNascita,
-        email:request.body.email,
-        
+        response.status(502).send("Database non raggiungibile");
+      } else {
+        response.status(200).send("Password modificata");
       }
-      pool.query("UPDATE BAMBINO SET BAMBINO.Nome = ?,BAMBINO.Cognome = ?,BAMBINO.DataNascita = ?, BAMBINO.Email = ?  WHERE CodiceFiscale = ?"
-      ,[kidUser.nome,kidUser.cognome,kidUser.dataNascita,kidUser.email,kidUser.codiceFiscale]
-      ,(err,rows)=>{
-        if (rows == undefined) {
-          response.status(502).send("Database non raggiungibile");
-        } else {
-          response.status(200).send("Password modificata");
-        }
-      })
-    })
+    }
+  );
+});
 
-    app.post("/getidmenukid", jsonParser, (request, response) => {
-      const kidParams = {
-        codiceFiscale: request.body.codiceFiscale,
-      };
-      pool.query(
-        "SELECT MENUBAMBINO.IdMenu,MENUBAMBINO.Stagione WHERE MENUBAMBINO.CodiceFiscaleBambino=?",
-        [kidParams.codiceFiscale],
-        (err, rows) => {
-          if (rows == undefined) {
-            response.status(502).send("Database non raggiungibile");
-          } else if (rows[0] == undefined) {
-            response.status(404).send("Utente non trovato");
-          } else {
-            response.status(200).send(rows[0]);
-          }
-        }
-      );
-    });
+//API per modificare tutti i campi tolta la password del bambino
+app.post("/setkid", jsonParser, (request, response) => {
+  const kidUser = {
+    codiceFiscale: request.body.codiceFiscale,
+    nome: request.body.nome,
+    cognome: request.body.cognome,
+    dataNascita: request.body.dataNascita,
+    email: request.body.email,
+  };
+  pool.query(
+    "UPDATE BAMBINO SET BAMBINO.Nome = ?,BAMBINO.Cognome = ?,BAMBINO.DataNascita = ?, BAMBINO.Email = ?  WHERE CodiceFiscale = ?",
+    [
+      kidUser.nome,
+      kidUser.cognome,
+      kidUser.dataNascita,
+      kidUser.email,
+      kidUser.codiceFiscale,
+    ],
+    (err, rows) => {
+      if (rows == undefined) {
+        response.status(502).send("Database non raggiungibile");
+      } else {
+        response.status(200).send("Password modificata");
+      }
+    }
+  );
+});
+
+app.post("/getidmenukid", jsonParser, (request, response) => {
+  const kidParams = {
+    codiceFiscale: request.body.codiceFiscale,
+  };
+  pool.query(
+    "SELECT MENUBAMBINO.IdMenu,MENUBAMBINO.Stagione WHERE MENUBAMBINO.CodiceFiscaleBambino=?",
+    [kidParams.codiceFiscale],
+    (err, rows) => {
+      if (rows == undefined) {
+        response.status(502).send("Database non raggiungibile");
+      } else if (rows[0] == undefined) {
+        response.status(404).send("Utente non trovato");
+      } else {
+        response.status(200).send(rows[0]);
+      }
+    }
+  );
+});
 
 //FUNZIONI CUCINA
 app.post("/cheflogin", jsonParser, (request, response) => {
@@ -252,21 +271,23 @@ app.post("/getchef", jsonParser, (request, response) => {
     }
   );
 });
-app.post("/setchefpassword",jsonParser,(request,response)=>{
-  const chefUser ={
-      username: request.body.username,
-      password: cipher.encryptPBKDF2(request.body.password)
-  }
-  pool.query("UPDATE UTENTECUCINA SET UTENTECUCINA.Password = ? WHERE Username = ?"
-  ,[chefUser.password,chefUser.username]
-  ,(err,rows)=>{
+app.post("/setchefpassword", jsonParser, (request, response) => {
+  const chefUser = {
+    username: request.body.username,
+    password: cipher.encryptPBKDF2(request.body.password),
+  };
+  pool.query(
+    "UPDATE UTENTECUCINA SET UTENTECUCINA.Password = ? WHERE Username = ?",
+    [chefUser.password, chefUser.username],
+    (err, rows) => {
       if (rows == undefined) {
-          response.status(502).send("Database non raggiungibile");
-        } else {
-          response.status(200).send("Password modificata");
+        response.status(502).send("Database non raggiungibile");
+      } else {
+        response.status(200).send("Password modificata");
       }
-      })
-})
+    }
+  );
+});
 
 app.post("/getassociazionecucine", jsonParser, (request, response) => {
   const chefUser = {
@@ -305,10 +326,9 @@ app.post("/auth", jsonParser, (request, response) => {
   }
 });
 
-
 //End of main functions
-app.listen(port, () => {
-  console.log("Backend in ascolto sulla porta: " + port);
+httpsListener.listen(mainConfig.parameters.listenPort, () => {
+  console.log("Backend in ascolto sulla porta: " + mainConfig.parameters.listenPort);
 });
 
 //Se capita un errore non fa esplodere node
