@@ -3,6 +3,7 @@ const sql = require("mysql");
 const dbConf = require("./db/dbconfig");
 const mainConfig = require("./config/generalConfig");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 
 //Decommentare solo se necessaria una richiesta senza encoding (es. da Native)
 const jsonParser = bodyParser.json();
@@ -35,6 +36,7 @@ const httpsListener = https.createServer(
 //Favicon serving with serve-favicon module.
 app.use(favicon(path.join(__dirname, "resources", "favicon.ico")));
 app.use(express.static("pages"));
+app.use(cors());
 
 //Main functions start here
 app.get("/", (request, response) => {
@@ -70,25 +72,6 @@ app.post("/auslogin", jsonParser, (request, response) => {
       }
     }
   );
-});
-
-app.post("/auth", jsonParser, (request, response) => {
-  const requestedUser = {
-    email: request.body.email,
-    token: request.body.token,
-  };
-  let mail = cipher.isTokenValid(requestedUser.token).email;
-  if (mail) {
-    response.status(200).send({
-      valid: true,
-      username: mail,
-    });
-  } else {
-    response.status(401).send({
-      valid: false,
-      username: "",
-    });
-  }
 });
 
 //FUNZIONI BAMBINO
@@ -312,7 +295,6 @@ app.post("/auth", jsonParser, (request, response) => {
     token: request.body.token,
   };
   let mail = cipher.isTokenValid(requestedUser.token).email;
-  console.log(mail);
   if (mail) {
     response.status(200).send({
       valid: true,
