@@ -131,3 +131,4 @@ dist
 
 #Certificates and private stuff
 certificates/*.*
+daemon/*.*
