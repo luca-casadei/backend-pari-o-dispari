@@ -123,12 +123,32 @@ app.post("/getkid", jsonParser, (request, response) => {
 app.post("/getkidmenuinfo", jsonParser, (request, response) => {
   const kidParams = {
     codiceFiscale: request.body.codiceFiscale,
+  };
+  pool.query(
+    "SELECT MENU.Id, MENU.EmailCreatore, MENU.Nome, MENUBAMBINO.Stagione FROM MENU INNER JOIN MENUBAMBINO " +
+    "ON MENU.Id=MENUBAMBINO.IdMenu WHERE MENUBAMBINO.CodiceFiscaleBambino = ?",
+    [kidParams.codiceFiscale],
+    (err, rows) => {
+      if (rows == undefined) {
+        response.status(502).send("Database non raggiungibile");
+      } else if (rows[0] == undefined) {
+        response.status(404).send("Utente non trovato");
+      } else {
+        response.status(200).send(rows[0]);
+      }
+    }
+  );
+});
+
+app.post("/getkidmenudishes", jsonParser, (request, response) => {
+  const kidParams = {
+    codiceFiscale: request.body.codiceFiscale,
     idMenu: request.body.idMenu,
   };
   pool.query(
-    "SELECT PIATTO.Id,PIATTO.Nome AS NomePiatto,PIATTO.Descrizione,MENU.Nome AS NomeMenu,MENUBAMBINO.Stagione FROM MENUBAMBINO " +
-      "INNER JOIN MENU ON MENUBAMBINO.IdMenu=MENU.Id INNER JOIN COMPOSIZIONEMENU ON MENU.Id = COMPOSIZIONEMENU.IdMenu " +
-      "INNER JOIN PIATTO ON COMPOSIZIONEMENU.IdPiatto = PIATTO.Id WHERE MENUBAMBINO.CodiceFiscaleBambino=? AND MENUBAMBINO.IdMenu=?",
+    "SELECT PIATTO.Id,PIATTO.Nome AS NomePiatto,PIATTO.Descrizione FROM MENUBAMBINO " +
+    "INNER JOIN MENU ON MENUBAMBINO.IdMenu=MENU.Id INNER JOIN COMPOSIZIONEMENU ON MENU.Id = COMPOSIZIONEMENU.IdMenu " +
+    "INNER JOIN PIATTO ON COMPOSIZIONEMENU.IdPiatto = PIATTO.Id WHERE MENUBAMBINO.CodiceFiscaleBambino=? AND MENUBAMBINO.IdMenu=?",
     [kidParams.codiceFiscale, kidParams.idMenu],
     (err, rows) => {
       if (rows == undefined) {
