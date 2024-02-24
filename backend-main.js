@@ -26,8 +26,8 @@ const favicon = require("serve-favicon");
 //HTTPS loading
 const reader = require("fs");
 const https = require("https");
-const privateKey = reader.readFileSync("./certificates/privkey1.pem");
-const certificate = reader.readFileSync("./certificates/fullchain1.pem");
+const privateKey = reader.readFileSync("./certificates/casadeiddnsnet.key");
+const certificate = reader.readFileSync("./certificates/casadei_ddns_net.pem");
 const httpsListener = https.createServer(
   { key: privateKey, cert: certificate },
   app
@@ -136,7 +136,7 @@ app.post("/getkidmenuinfo", jsonParser, (request, response) => {
       } else if (rows[0] == undefined) {
         response.status(404).send("Utente non trovato");
       } else {
-        response.status(200).send(rows[0]);
+        response.status(200).send(rows);
       }
     }
   );
@@ -190,12 +190,9 @@ app.post("/setkid", jsonParser, (request, response) => {
 });
 
 app.post("/getidmenukid", jsonParser, (request, response) => {
-  const kidParams = {
-    codiceFiscale: request.body.codiceFiscale,
-  };
   pool.query(
-    "SELECT MENUBAMBINO.IdMenu,MENUBAMBINO.Stagione WHERE MENUBAMBINO.CodiceFiscaleBambino=?",
-    [kidParams.codiceFiscale],
+    "SELECT IdMenu,Stagione FROM MENUBAMBINO WHERE CodiceFiscaleBambino=?",
+    request.body.codiceFiscale,
     (err, rows) => {
       if (rows == undefined) {
         response.status(502).send("Database non raggiungibile");
