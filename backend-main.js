@@ -125,8 +125,8 @@ app.post("/getkidmenuinfo", jsonParser, (request, response) => {
     codiceFiscale: request.body.codiceFiscale,
   };
   pool.query(
-    "SELECT MENU.Id, MENU.EmailCreatore, MENU.Nome, MENUBAMBINO.Stagione FROM MENU INNER JOIN MENUBAMBINO " +
-    "ON MENU.Id=MENUBAMBINO.IdMenu WHERE MENUBAMBINO.CodiceFiscaleBambino = ?",
+    "SELECT MENU.Id as IdMenu, MENU.EmailCreatore AS EmailCreatoreMenu, MENU.Nome AS NomeMenu, MENUBAMBINO.Stagione AS StagioneMenu " +
+    "FROM MENU INNER JOIN MENUBAMBINO ON MENU.Id=MENUBAMBINO.IdMenu WHERE MENUBAMBINO.CodiceFiscaleBambino = ?",
     [kidParams.codiceFiscale],
     (err, rows) => {
       if (rows == undefined) {
